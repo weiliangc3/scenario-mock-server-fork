@@ -1,0 +1,36 @@
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+run-name: release
+on:
+  push:
+    branches:
+      - main
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+  lint:
+    uses: ./.github/workflows/lint.yml
+  release:
+    needs: [test, lint]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Release"
+  # TODO: Put back when ready
+  #     - uses: actions/checkout@v3
+
+  #     - name: Setup
+  #       uses: ./.github/actions/setup
+  #       with:
+  #         fetch-depth: 0
+  #         token: ${{ secrets.GH_TOKEN }}
+
+  #     - name: Create release PR or Publish to npm
+  #       id: changesets
+  #       uses: changesets/action@v1
+  #       with:
+  #         publish: pnpm release
+  #         version: pnpm changeset version
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+  #         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
