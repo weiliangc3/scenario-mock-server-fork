@@ -1,5 +1,11 @@
 # scenario-mock-server
 
+## 1.0.1
+
+### Patch Changes
+
+- eec3ed9: Replace references to data-mocks-server
+
 ## 1.0.0
 
 ### Major Changes
