@@ -32,13 +32,13 @@ Mock server powered by scenarios.
 ## Installation
 
 ```
-npm install data-mocks-server
+npm install scenario-mock-server
 ```
 
 ## Example usage
 
 ```javascript
-const { run } = require('data-mocks-server');
+const { run } = require('scenario-mock-server');
 
 run({
 	scenarios: {
