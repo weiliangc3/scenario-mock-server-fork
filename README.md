@@ -16,7 +16,6 @@ Mock server powered by scenarios.
   - [API](#api)
     - [createExpressApp](#createexpressapp)
     - [run](#run)
-      - [default](#default)
       - [scenarios](#scenarios)
       - [options](#options)
   - [Types](#types)
@@ -126,40 +125,31 @@ This header must also be set when context is being used, otherwise context will 
 
 ### createExpressApp
 
-Returns the internal express instance
+Returns the internal express instance.
 
-> `function({ default, scenarios, options })`
+> `function({ scenarios, options })`
 
 ### run
 
-Returns an http server, with an additional kill method
+Returns an http server, with an additional kill method.
 
-> `function({ default, scenarios, options })`
-
-#### default
-
-> `Array<Mock> | { context, mocks }` | _required_
-
-<!-- https://www.tablesgenerator.com/markdown_tables -->
-
-| Property | Type          | Default     | Description                           |
-| -------- | ------------- | ----------- | ------------------------------------- |
-| context  | `object`      | `undefined` | Used to set up data across API calls. |
-| mocks    | `Array<Mock>` | _required_  | See [Mock](#mock) for more details.   |
+> `function({ scenarios, options })`
 
 #### scenarios
 
-> `{ [scenarioName]: Array<Mock> | { group, mocks } }`
+> `{ [scenarioId]: Array<Mock> | { name, description, context, mocks, extend } }`
 
 <!-- https://www.tablesgenerator.com/markdown_tables -->
 
-| Property     | Type          | Default     | Description                                                                            |
-| ------------ | ------------- | ----------- | -------------------------------------------------------------------------------------- |
-| scenarioName | `string`      | _required_  | Name of scenario.                                                                      |
-| Mock         | `Mock`        | _required_  | See [Mock](#mock) for more details.                                                    |
-| group        | `string`      | `undefined` | Used to group scenarios together so that only one scenario in a group can be selected. |
-| context      | `object`      | `undefined` | Used to set up data across API calls.                                                  |
-| mocks        | `Array<Mock>` | _required_  | See [Mock](#mock) for more details.                                                    |
+| Property    | Type          | Default         | Description                                                       |
+| ----------- | ------------- | --------------- | ----------------------------------------------------------------- |
+| scenarioId  | `string`      | _required_      | Scenario id. Used in calls to /select-scenario.                   |
+| Mock        | `Mock`        | _required_      | See [Mock](#mock) for more details.                               |
+| name        | `string`      | `${scenarioId}` | Scenario name. Used in the UI and available in /scenarios.        |
+| description | `string`      | `undefined`     | Scenario description. Used in the UI and available in /scenarios. |
+| context     | `object`      | `undefined`     | Used to set up data across API calls.                             |
+| mocks       | `Array<Mock>` | _required_      | See [Mock](#mock) for more details.                               |
+| extend      | `string`      | `undefined`     | Use for extending other scenarios. Requires a scenario id.        |
 
 #### options
 
