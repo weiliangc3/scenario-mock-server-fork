@@ -1,5 +1,11 @@
 # scenario-mock-server
 
+## 1.0.2
+
+### Patch Changes
+
+- da8945f: Update API docs to reflect changes made since data-mocks-server.
+
 ## 1.0.1
 
 ### Patch Changes
