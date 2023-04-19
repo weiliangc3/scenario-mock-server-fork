@@ -1,5 +1,11 @@
 # scenario-mock-server
 
+## 1.1.0
+
+### Minor Changes
+
+- 0073971: Expose request headers to response functions
+
 ## 1.0.2
 
 ### Patch Changes
