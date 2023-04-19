@@ -215,5 +215,5 @@ async function graphQlRequestHandler({
 		response: operation.response,
 	});
 
-	return handler({ variables });
+	return handler({ variables, headers: req.headers });
 }

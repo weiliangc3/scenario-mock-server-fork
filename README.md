@@ -199,7 +199,7 @@ See [HttpMock](#httpmock) and [GraphQlMock](#graphqlmock) for more details.
 
 ### HttpResponseFunction
 
-> `function({ query, body, params, context, updateContext }): response | Promise<response>`
+> `function({ query, body, params, headers, context, updateContext }): response | Promise<response>`
 
 <!-- https://www.tablesgenerator.com/markdown_tables -->
 
@@ -208,6 +208,7 @@ See [HttpMock](#httpmock) and [GraphQlMock](#graphqlmock) for more details.
 | query         | `object`                 | `{}`                               | query object as defined by `express`.                                                                             |
 | body          | `object`                 | `{}`                               | body object as defined by `express`.                                                                              |
 | params        | `object`                 | `{}`                               | params object as defined by `express`.                                                                            |
+| `headers`     | `object`                 | `{}`                               | Request headers, lowercase keys, string values only.                                                              |
 | context       | `object`                 | `{}`                               | Data stored across API calls.                                                                                     |
 | updateContext | `Function`               | `partialContext => updatedContext` | Used to update context. `partialContext` can either be an `object` or a function (`context` => `partialContext`). |
 | response      | `undefined` / `Response` | _required_                         | [Response](#response).                                                                                            |
@@ -249,13 +250,14 @@ See [HttpMock](#httpmock) and [GraphQlMock](#graphqlmock) for more details.
 
 ### GraphQlResponseFunction
 
-> `function({ variables, context, updateContext }): response | Promise<response>`
+> `function({ variables, headers, context, updateContext }): response | Promise<response>`
 
 <!-- https://www.tablesgenerator.com/markdown_tables -->
 
 | Property      | Type                            | Default                            | Description                                                                                                       |
 | ------------- | ------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | variables     | `object`                        | `{}`                               | variables sent by client.                                                                                         |
+| `headers`     | `object`                        | `{}`                               | Request headers, lowercase keys, string values only.                                                              |
 | context       | `object`                        | `{}`                               | Data stored across API calls.                                                                                     |
 | updateContext | `Function`                      | `partialContext => updatedContext` | Used to update context. `partialContext` can either be an `object` or a function (`context` => `partialContext`). |
 | response      | `undefined` / `GraphQlResponse` | _required_                         | [GraphQlResponse](#graphqlresponse).                                                                              |

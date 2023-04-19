@@ -223,11 +223,12 @@ describe('run', () => {
 						{
 							path: '/test-function/:id',
 							method: 'POST',
-							response: ({ body, query, params }) => ({
+							response: ({ body, query, params, headers }) => ({
 								data: {
 									body,
 									query,
 									params,
+									headers,
 								},
 							}),
 						},
@@ -239,22 +240,33 @@ describe('run', () => {
 				const id = 'some-id';
 				const testQuery = 'test-query';
 				const body = { some: 'body' };
-				const response = await fetch(
+				const headers = {
+					'content-type': 'application/json',
+					'x-trace-token': '543406ca-1ad9-5dcf-9155-111faf80d9e5',
+				};
+
+				const response: any = await fetch(
 					`http://localhost:3000/test-function/${id}?testQuery=${testQuery}`,
 					{
 						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
+						headers,
 						body: JSON.stringify(body),
 					},
 				).then((res) => res.json());
 
-				expect(response).toEqual({
-					body,
-					query: {
-						testQuery,
-					},
-					params: { id },
-				});
+				expect(response).toEqual(
+					expect.objectContaining({
+						body,
+						query: {
+							testQuery,
+						},
+						params: { id },
+					}),
+				);
+
+				expect(response.headers['x-trace-token']).toEqual(
+					headers['x-trace-token'],
+				);
 			});
 		});
 
@@ -1257,6 +1269,55 @@ describe('run', () => {
 					}),
 				}).then((res) => res.json());
 				expect((result3 as any).data.user.name).toEqual(updatedName);
+			});
+		});
+
+		it('headers are passed to GraphQL functions', async () => {
+			const server = run({
+				scenarios: {
+					test: [
+						{
+							path: '/api/graphql',
+							method: 'GRAPHQL',
+							operations: [
+								{
+									name: 'Headers',
+									type: 'query',
+									response: ({ headers }) => ({
+										data: {
+											data: {
+												headers,
+											},
+										},
+									}),
+								},
+							],
+						},
+					],
+				},
+			});
+
+			await serverTest(server, async () => {
+				const query = `
+		      query Headers {
+		        headers
+		      }
+		    `;
+				const headers = {
+					'content-type': 'application/json',
+					'x-trace-token': '8474a2bf-86ef-5276-b7a2-6807ba0fcd83',
+				};
+				const response: any = await fetch('http://localhost:3000/api/graphql', {
+					method: 'POST',
+					headers,
+					body: JSON.stringify({
+						query,
+					}),
+				}).then((res) => res.json());
+
+				expect(response.data.headers['x-trace-token']).toEqual(
+					headers['x-trace-token'],
+				);
 			});
 		});
 	});

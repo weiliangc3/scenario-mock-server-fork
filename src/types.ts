@@ -72,6 +72,7 @@ export type HttpMock = {
 		query: Record<string, string | Array<string>>;
 		body: Record<string, unknown>;
 		params: Record<string, string>;
+		headers: Record<string, string>;
 	},
 	HttpResponse
 >;
@@ -87,6 +88,7 @@ export type Operation = {
 } & ResponseProps<
 	{
 		variables: Record<string, unknown>;
+		headers: Record<string, string>;
 	},
 	GraphQlResponse
 >;
