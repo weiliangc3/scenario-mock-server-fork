@@ -9,6 +9,7 @@ import {
 	InternalScenarioMap,
 	SetScenarioId,
 	SetContext,
+	Groups,
 } from './types';
 import { Html } from './Html';
 import { getScenarios, selectScenario } from './apis';
@@ -24,6 +25,7 @@ function getUi({
 	getCookie,
 	setCookie,
 	getServerScenarioId,
+	groups,
 }: {
 	uiPath: string;
 	cookieMode: boolean;
@@ -33,6 +35,7 @@ function getUi({
 	getCookie: GetCookie;
 	setCookie: SetCookie;
 	getServerScenarioId: () => string;
+	groups: Groups;
 }) {
 	const { data } = getScenarios({
 		cookieMode,
@@ -44,7 +47,9 @@ function getUi({
 		setCookie,
 	});
 
-	const html = renderToStaticMarkup(<Html uiPath={uiPath} scenarios={data} />);
+	const html = renderToStaticMarkup(
+		<Html uiPath={uiPath} scenarios={data} groups={groups} />,
+	);
 
 	return '<!DOCTYPE html>\n' + html;
 }
@@ -58,6 +63,7 @@ function updateUi({
 	setCookie,
 	setServerContext,
 	setServerScenarioId,
+	groups,
 }: {
 	scenarioId: string;
 	uiPath: string;
@@ -68,6 +74,7 @@ function updateUi({
 	setCookie: SetCookie;
 	setServerContext: SetContext;
 	setServerScenarioId: SetScenarioId;
+	groups: Groups;
 }) {
 	const updatedScenarioName = scenarioMap[scenarioId].name;
 
@@ -80,17 +87,19 @@ function updateUi({
 		setServerScenarioId,
 	});
 
-	const allScenarios = scenarios.map(({ id, name, description }) => ({
+	const allScenarios = scenarios.map(({ id, name, description, group }) => ({
 		id,
 		name,
 		description: description === undefined ? null : description,
 		selected: id === scenarioId,
+		group: group === undefined ? null : group,
 	}));
 
 	const html = renderToStaticMarkup(
 		<Html
 			uiPath={uiPath}
 			scenarios={allScenarios}
+			groups={groups}
 			updatedScenarioName={updatedScenarioName}
 		/>,
 	);

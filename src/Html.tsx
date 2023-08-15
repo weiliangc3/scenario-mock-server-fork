@@ -6,9 +6,11 @@ function Html({
 	updatedScenarioName,
 	uiPath,
 	scenarios,
+	groups,
 }: {
 	uiPath: string;
 	scenarios: Array<ApiScenario>;
+	groups: Record<string, string>;
 	updatedScenarioName?: string;
 }) {
 	return (
@@ -17,8 +19,8 @@ function Html({
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width,initial-scale=1" />
 				<title>
-					{updatedScenarioName ? 'Updated - ' : ''}Scenarios - Scenario Mock
-					Server
+					{`${updatedScenarioName ? 'Updated - ' : ''}Scenarios - Scenario Mock
+					Server`}
 				</title>
 				<link
 					rel="stylesheet"
@@ -37,31 +39,11 @@ function Html({
 							<legend>
 								<h1>Scenarios</h1>
 							</legend>
-							<div className="stack-3">
-								{scenarios.map((scenario) => (
-									<div key={scenario.id}>
-										<input
-											type="radio"
-											id={scenario.id}
-											name="scenarioId"
-											value={scenario.id}
-											defaultChecked={scenario.selected}
-										/>
-										<label htmlFor={scenario.id}>{scenario.name}</label>
-										{scenario.description ? (
-											<>
-												<br />
-												<details>
-													<summary>Description</summary>
-													<div className="description">
-														{scenario.description}
-													</div>
-												</details>
-											</>
-										) : null}
-									</div>
-								))}
-							</div>
+							{scenarios.some(({ group }) => group !== null) ? (
+								<GroupedScenarios groups={groups} scenarios={scenarios} />
+							) : (
+								<ScenarioList scenarios={scenarios} />
+							)}
 						</fieldset>
 						<CallToActionButton />
 					</form>
@@ -88,6 +70,74 @@ function CallToActionButton() {
 		<button type="submit" name="button" value="modify">
 			Select scenario
 		</button>
+	);
+}
+
+const NULL_GROUP_ID = 'sms-other';
+
+function GroupedScenarios({
+	groups,
+	scenarios,
+}: {
+	groups: Record<string, string>;
+	scenarios: Array<ApiScenario>;
+}) {
+	const groupedScenarios: Record<string, Array<ApiScenario>> = {};
+
+	scenarios.forEach((scenario) => {
+		const group = scenario.group === null ? NULL_GROUP_ID : scenario.group;
+
+		groupedScenarios[group] = groupedScenarios[group] || [];
+		groupedScenarios[group].push(scenario);
+	});
+
+	const groupsWithLabelIds = Object.keys(groups);
+	const groupsWithoutLabelIds = Object.keys(groupedScenarios).filter(
+		(groupId) =>
+			!groupsWithLabelIds.includes(groupId) && groupId !== NULL_GROUP_ID,
+	);
+
+	const groupEntries = Object.entries(groups)
+		.concat(groupsWithoutLabelIds.map((groupId) => [groupId, groupId]))
+		.concat([[NULL_GROUP_ID, 'Other']]);
+
+	return (
+		<>
+			{groupEntries.map(([groupId, groupName]) => (
+				<div key={groupId}>
+					<h2>{groupName}</h2>
+					<ScenarioList scenarios={groupedScenarios[groupId]} />
+				</div>
+			))}
+		</>
+	);
+}
+
+function ScenarioList({ scenarios }: { scenarios: Array<ApiScenario> }) {
+	return (
+		<div className="stack-3">
+			{scenarios.map((scenario) => (
+				<div key={scenario.id}>
+					<input
+						type="radio"
+						id={scenario.id}
+						name="scenarioId"
+						value={scenario.id}
+						defaultChecked={scenario.selected}
+					/>
+					<label htmlFor={scenario.id}>{scenario.name}</label>
+					{scenario.description ? (
+						<>
+							<br />
+							<details>
+								<summary>Description</summary>
+								<div className="description">{scenario.description}</div>
+							</details>
+						</>
+					) : null}
+				</div>
+			))}
+		</div>
 	);
 }
 

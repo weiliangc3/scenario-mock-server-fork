@@ -44,11 +44,12 @@ function getScenarios({
 	});
 
 	const allScenarios: Array<ApiScenario> = scenarios.map(
-		({ id, name, description }) => ({
+		({ id, name, description, group }) => ({
 			id,
 			name,
 			description: description === undefined ? null : description,
 			selected: id === scenarioId,
+			group: group === undefined ? null : group,
 		}),
 	);
 

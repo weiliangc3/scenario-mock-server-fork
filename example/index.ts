@@ -102,6 +102,7 @@ run({
 		},
 		blueCheese: {
 			name: 'Blue cheese',
+			group: 'cheese',
 			mocks: [
 				{
 					path: '/api/test-me',
@@ -129,6 +130,7 @@ run({
 		},
 		redCheese: {
 			name: 'Red cheese',
+			group: 'cheese',
 			mocks: [
 				{
 					path: '/api/test-me',
@@ -156,11 +158,13 @@ run({
 		},
 		tigerBread: {
 			name: 'Tiger bread',
+			group: 'bread',
 			extend: 'default',
 			mocks: [],
 		},
 		baguette: {
 			name: 'Baguette',
+			group: 'bread',
 			extend: 'default',
 			mocks: [],
 		},
@@ -180,5 +184,9 @@ run({
 			extend: 'default',
 			mocks: [],
 		},
+	},
+	groups: {
+		bread: 'Bread',
+		cheese: 'Cheese',
 	},
 });

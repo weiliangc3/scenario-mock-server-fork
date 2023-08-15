@@ -1,6 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ServerWithKill } from 'server-with-kill';
-import { describe, it, expect } from 'vitest';
+import {
+	describe,
+	it,
+	expect,
+	beforeEach,
+	afterEach,
+	vi,
+	SpyInstance,
+} from 'vitest';
 import fetch from 'node-fetch';
 
 import { run } from './index';
@@ -1322,6 +1330,74 @@ describe('run', () => {
 		});
 	});
 
+	describe('groups', () => {
+		it('api returns array of groups', async () => {
+			const server = run({
+				scenarios: { default: [] },
+				groups: { animal: 'Elephant', bear: 'Polar' },
+			});
+
+			await serverTest(server, async () => {
+				const response = await fetch('http://localhost:3000/groups').then(
+					(res) => res.json(),
+				);
+				expect(response).toEqual([
+					{ id: 'animal', name: 'Elephant' },
+					{ id: 'bear', name: 'Polar' },
+				]);
+			});
+		});
+
+		it('path can be altered', async () => {
+			const server = run({
+				scenarios: { default: [] },
+				options: {
+					groupsPath: '/api/groups',
+				},
+				groups: { animal: 'Elephant', bear: 'Polar' },
+			});
+
+			await serverTest(server, async () => {
+				const response = await fetch('http://localhost:3000/api/groups').then(
+					(res) => res.json(),
+				);
+				expect(response).toEqual([
+					{ id: 'animal', name: 'Elephant' },
+					{ id: 'bear', name: 'Polar' },
+				]);
+			});
+		});
+
+		describe('warns in app when scenarios have groups but no name has been defined', () => {
+			let consoleWarn: SpyInstance;
+			let consoleWarning: string;
+			beforeEach(() => {
+				consoleWarn = vi
+					.spyOn(console, 'warn')
+					.mockImplementationOnce((warning) => (consoleWarning = warning));
+			});
+
+			it('', async () => {
+				const server = run({
+					scenarios: { test: { group: 'no-label', mocks: [] } },
+					options: {
+						groupsPath: '/api/groups',
+					},
+					groups: { animal: 'Elephant', bear: 'Polar' },
+				});
+
+				await serverTest(server, () => {
+					expect(consoleWarn).toHaveBeenCalled();
+					expect(consoleWarning).toContain('no-label');
+				});
+			});
+
+			afterEach(() => {
+				consoleWarn.mockReset();
+			});
+		});
+	});
+
 	describe('scenarios', () => {
 		it('override extended paths', async () => {
 			const expectedInitialResponse = {};
@@ -1603,6 +1679,45 @@ describe('run', () => {
 	});
 
 	describe('GET scenarios', () => {
+		it('sets group as declared otherwise returns null', async () => {
+			const server = run({
+				scenarios: {
+					test1: { mocks: [], group: 'test' },
+					test2: { mocks: [] },
+					test3: { mocks: [] },
+					test4: { mocks: [], group: 'test' },
+				},
+				groups: {
+					test: 'Test',
+				},
+			});
+
+			await serverTest(server, async () => {
+				const scenariosResponse = await fetch(
+					'http://localhost:3000/scenarios',
+				).then((res) => res.json());
+
+				expect(scenariosResponse).toEqual([
+					expect.objectContaining({
+						id: 'test1',
+						group: 'test',
+					}),
+					expect.objectContaining({
+						id: 'test2',
+						group: null,
+					}),
+					expect.objectContaining({
+						id: 'test3',
+						group: null,
+					}),
+					expect.objectContaining({
+						id: 'test4',
+						group: 'test',
+					}),
+				]);
+			});
+		});
+
 		it('sets the first declared scenario as "selected" and uses scenario names and descriptions as expected', async () => {
 			const server = run({
 				scenarios: {
@@ -1624,36 +1739,36 @@ describe('run', () => {
 				).then((res) => res.json());
 
 				expect(scenariosResponse).toEqual([
-					{
+					expect.objectContaining({
 						id: 'default',
 						name: 'Default',
 						description: 'Default description',
 						selected: true,
-					},
-					{
+					}),
+					expect.objectContaining({
 						id: 'test1',
 						name: 'Test 1',
 						description: 'Description 1',
 						selected: false,
-					},
-					{
+					}),
+					expect.objectContaining({
 						id: 'test2',
 						name: 'Test 2',
 						description: 'Description 2',
 						selected: false,
-					},
-					{
+					}),
+					expect.objectContaining({
 						id: 'test3',
 						name: 'Test 3',
 						description: 'Description 3',
 						selected: false,
-					},
-					{
+					}),
+					expect.objectContaining({
 						id: 'test4',
 						name: 'Test 4',
 						description: 'Description 4',
 						selected: false,
-					},
+					}),
 				]);
 			});
 		});
@@ -1701,36 +1816,31 @@ describe('run', () => {
 				).then((res) => res.json());
 
 				expect(scenariosResponse).toEqual([
-					{
+					expect.objectContaining({
 						id: 'default',
 						name: 'default',
-						description: null,
 						selected: false,
-					},
-					{
+					}),
+					expect.objectContaining({
 						id: 'test1',
 						name: 'test1',
-						description: null,
 						selected: false,
-					},
-					{
+					}),
+					expect.objectContaining({
 						id: 'test2',
 						name: 'test2',
-						description: null,
 						selected: true,
-					},
-					{
+					}),
+					expect.objectContaining({
 						id: 'test3',
 						name: 'test3',
-						description: null,
 						selected: false,
-					},
-					{
+					}),
+					expect.objectContaining({
 						id: 'test4',
 						name: 'test4',
-						description: null,
 						selected: false,
-					},
+					}),
 				]);
 			});
 		});

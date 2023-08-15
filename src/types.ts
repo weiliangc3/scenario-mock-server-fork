@@ -4,21 +4,25 @@ export type Result = {
 	data?: unknown;
 };
 
-export type Scenario =
-	| {
-			name?: string;
-			description?: string;
-			context?: Context;
-			mocks: Mock[];
-			extend?: string;
-	  }
-	| Mock[];
+export type ScenarioWithOptionalProperties = {
+	name?: string;
+	description?: string;
+	context?: Context;
+	mocks: Mock[];
+	extend?: string;
+	group?: string;
+};
+
+export type Scenario = ScenarioWithOptionalProperties | Mock[];
+
+export type Groups = Record<string, string>;
 
 export type ApiScenario = {
 	id: string;
 	name: string;
 	description: null | string;
 	selected: boolean;
+	group: null | string;
 };
 
 export type InternalScenario = {
@@ -28,6 +32,7 @@ export type InternalScenario = {
 	context?: Context;
 	mocks: Mock[];
 	extend?: string;
+	group?: string;
 };
 
 export type SetScenarioId = (scenarioId: string) => void;
@@ -106,6 +111,7 @@ export type Options = {
 	uiPath?: string;
 	selectScenarioPath?: string;
 	scenariosPath?: string;
+	groupsPath?: string;
 	cookieMode?: boolean;
 	parallelContextSize?: number;
 };

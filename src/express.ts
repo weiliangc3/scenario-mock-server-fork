@@ -13,6 +13,9 @@ import type {
 	InternalScenario,
 	InternalScenarioMap,
 	ScenarioMap,
+	Groups,
+	ScenarioWithOptionalProperties,
+	Scenario,
 } from './types';
 
 import { getUi, updateUi } from './ui';
@@ -23,20 +26,63 @@ import { LruCache } from './utils/lru-cache';
 
 export { createExpressApp };
 
+function scenarioHasGroup(scenario: Scenario): scenario is Omit<
+	ScenarioWithOptionalProperties,
+	'group'
+> & {
+	group: string;
+} {
+	return !Array.isArray(scenario) && scenario.group != null;
+}
+
+function validateAllGroupsHaveNames({
+	scenarios,
+	groups,
+}: {
+	scenarios: ScenarioMap;
+	groups: Groups;
+}) {
+	const uniqueGroups = Array.from(
+		Object.values(scenarios)
+			.filter(scenarioHasGroup)
+			.reduce((set, { group }) => {
+				set.add(group);
+
+				return set;
+			}, new Set<string>())
+			.values(),
+	);
+
+	const groupsWithoutNames = uniqueGroups.filter((group) => !groups[group]);
+
+	if (groupsWithoutNames.length > 0) {
+		console.warn(
+			`The following groups do not have a name: ${groupsWithoutNames.join(
+				', ',
+			)}`,
+		);
+	}
+}
+
 function createExpressApp({
 	scenarios: externalScenarioMap,
 	options = {},
+	groups = {},
 }: {
 	scenarios: ScenarioMap;
 	options?: Omit<Options, 'port'>;
+	groups?: Groups;
 }): ReturnType<typeof express> {
 	const {
 		uiPath = '/',
 		selectScenarioPath = '/select-scenario',
 		scenariosPath = '/scenarios',
+		groupsPath = '/groups',
 		cookieMode = false,
 		parallelContextSize = 10,
 	} = options;
+
+	validateAllGroupsHaveNames({ scenarios: externalScenarioMap, groups });
 
 	const { scenarios, scenarioMap } = generateScenarios(externalScenarioMap);
 	const { initialScenarioId, initialContext } = generatInitialValues(
@@ -66,6 +112,7 @@ function createExpressApp({
 			setCookie: expressSetCookie(res),
 			getServerScenarioId,
 			scenarios,
+			groups,
 		});
 
 		res.send(html);
@@ -84,6 +131,7 @@ function createExpressApp({
 			setCookie: expressSetCookie(res),
 			setServerContext,
 			setServerScenarioId,
+			groups,
 		});
 
 		res.send(html);
@@ -116,6 +164,16 @@ function createExpressApp({
 		});
 
 		expressResponse(res, result);
+	});
+
+	app.get(groupsPath, (_: Request, res: Response) => {
+		expressResponse(res, {
+			status: 200,
+			headers: {
+				'content-type': 'application/json',
+			},
+			data: Object.entries(groups).map(([id, name]) => ({ id, name })),
+		});
 	});
 
 	app.use(async (req, res) => {

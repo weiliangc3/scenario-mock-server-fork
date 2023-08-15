@@ -13,10 +13,15 @@ Mock server powered by scenarios.
   - [Running tests in parallel](#running-tests-in-parallel)
     - [sms-scenario-id header](#sms-scenario-id-header)
     - [sms-context-id header](#sms-context-id-header)
+  - [Additional API paths](#additional-api-paths)
+    - [/scenarios](#scenarios)
+    - [/select-scenario](#select-scenario)
+    - [/groups](#groups)
   - [API](#api)
     - [createExpressApp](#createexpressapp)
     - [run](#run)
-      - [scenarios](#scenarios)
+      - [scenarios](#scenarios-1)
+      - [groups](#groups-1)
       - [options](#options)
   - [Types](#types)
     - [Mock](#mock)
@@ -121,6 +126,51 @@ When this header is set to the scenario id of choice, regardless of what the cur
 
 This header must also be set when context is being used, otherwise context will reset on each call to the server when using the `sms-scenario-id` header.
 
+## Additional API paths
+
+In addition to responding to API requests as set up by the currently active scenario a few additional endpoints exist that return json:
+
+- `/scenarios`
+- `/select-scenario`
+- `/groups`
+
+These paths can be modified by using `options` (in case they clash with paths from scnearios).
+
+### /scenarios
+
+Returns an array of scenarios available. Use `GET`.
+
+```ts
+type ApiScenario = {
+	id: string;
+	name: string;
+	description: null | string;
+	selected: boolean;
+	group: null | string;
+};
+```
+
+### /select-scenario
+
+Allows you to select which scenario is active. Use `PUT` and the following body:
+
+```json
+{
+	"scenarioId": "{SCENARIO_YOU_WANT_TO_SELECT}"
+}
+```
+
+### /groups
+
+Returns an array of groups. Use `GET`.
+
+```ts
+type ApiGroup = {
+	id: string;
+	name: string;
+};
+```
+
 ## API
 
 ### createExpressApp
@@ -137,7 +187,7 @@ Returns an http server, with an additional kill method.
 
 #### scenarios
 
-> `{ [scenarioId]: Array<Mock> | { name, description, context, mocks, extend } }`
+> `{ [scenarioId]: Array<Mock> | { name, description, context, mocks, extend, group } }`
 
 <!-- https://www.tablesgenerator.com/markdown_tables -->
 
@@ -150,10 +200,22 @@ Returns an http server, with an additional kill method.
 | context     | `object`      | `undefined`     | Used to set up data across API calls.                             |
 | mocks       | `Array<Mock>` | _required_      | See [Mock](#mock) for more details.                               |
 | extend      | `string`      | `undefined`     | Use for extending other scenarios. Requires a scenario id.        |
+| group       | `string`      | `undefined`     | Used for grouping scenarios in the UI.                            |
+
+#### groups
+
+> `{ [groupId]: groupName }`
+
+<!-- https://www.tablesgenerator.com/markdown_tables -->
+
+| Property  | Type     | Default    | Description                                           |
+| --------- | -------- | ---------- | ----------------------------------------------------- |
+| groupId   | `string` | _required_ | Group id. Matches with `group` assigned to scenarios. |
+| groupName | `string` | _required_ | Used for heading in UI when groups exist.             |
 
 #### options
 
-> `{ port, uiPath, selectScenarioPath, scenariosPath, cookieMode, parallelContextSize }` | defaults to `{}`
+> `{ port, uiPath, selectScenarioPath, scenariosPath, groupsPath, cookieMode, parallelContextSize }` | defaults to `{}`
 
 <!-- https://www.tablesgenerator.com/markdown_tables -->
 
@@ -163,6 +225,7 @@ Returns an http server, with an additional kill method.
 | uiPath              | `string`  | `/`                | Path that the UI will load on. `http://localhost:{port}{uiPath}`                                                               |
 | selectScenarioPath  | `string`  | `/select-scenario` | API path for selecting a scenario. `http://localhost:{port}{selectScenarioPath}`                                               |
 | scenariosPath       | `string`  | `/scenarios`       | API path for getting scenarios. `http://localhost:{port}{scenariosPath}`                                                       |
+| groupsPath          | `string`  | `/groups`          | API path for getting groups. `http://localhost:{port}{groupsPath}`                                                             |
 | cookieMode          | `boolean` | `false`            | Whether or not to store scenario selections in a cookie rather than directly in the server                                     |
 | parallelContextSize | `number`  | `10`               | How large to make the number of contexts that can run in parallel. See [Running tests in parallel](#running-tests-in-parallel) |
 
