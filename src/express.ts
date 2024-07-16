@@ -26,6 +26,9 @@ import { LruCache } from './utils/lru-cache';
 
 export { createExpressApp };
 
+let scenarios: InternalScenario[];
+let scenarioMap: InternalScenarioMap;
+
 function scenarioHasGroup(scenario: Scenario): scenario is Omit<
 	ScenarioWithOptionalProperties,
 	'group'
@@ -81,14 +84,13 @@ function createExpressApp({
 		cookieMode = false,
 		parallelContextSize = 10,
 	} = options;
+	const refreshPath = options.refresh?.path || '/refresh';
+	const refreshFn = options.refresh?.fn || (() => externalScenarioMap);
 
 	validateAllGroupsHaveNames({ scenarios: externalScenarioMap, groups });
 
-	const { scenarios, scenarioMap } = generateScenarios(externalScenarioMap);
-	const { initialScenarioId, initialContext } = generatInitialValues(
-		scenarios,
-		scenarioMap,
-	);
+	const { initialScenarioId, initialContext } =
+		setScenarios(externalScenarioMap);
 
 	let serverScenarioId = initialScenarioId;
 	let serverContext = initialContext;
@@ -105,6 +107,7 @@ function createExpressApp({
 	app.get(uiPath, (req, res) => {
 		const html = getUi({
 			uiPath,
+			refreshPath,
 			cookieMode,
 			initialScenarioId,
 			initialContext,
@@ -135,6 +138,11 @@ function createExpressApp({
 		});
 
 		res.send(html);
+	});
+
+	app.post(refreshPath, (_, res) => {
+		setScenarios(refreshFn());
+		res.send(scenarioMap);
 	});
 
 	app.put(selectScenarioPath, ({ body }: Request, res: Response) => {
@@ -262,7 +270,7 @@ function generateScenarios(externalScenarioMap: ScenarioMap) {
 	return { scenarios, scenarioMap };
 }
 
-function generatInitialValues(
+function generateInitialValues(
 	scenarios: InternalScenario[],
 	scenarioMap: InternalScenarioMap,
 ) {
@@ -303,4 +311,12 @@ function expressResponse(res: Response, { status, headers, data }: Result) {
 				? JSON.stringify(data)
 				: data,
 		);
+}
+
+function setScenarios(externalScenarioMap: ScenarioMap) {
+	const { scenarios: generatedScenarios, scenarioMap: generatedScenarioMap } =
+		generateScenarios(externalScenarioMap);
+	scenarios = generatedScenarios;
+	scenarioMap = generatedScenarioMap;
+	return generateInitialValues(scenarios, scenarioMap);
 }

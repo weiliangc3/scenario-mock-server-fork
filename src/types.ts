@@ -114,6 +114,10 @@ export type Options = {
 	groupsPath?: string;
 	cookieMode?: boolean;
 	parallelContextSize?: number;
+	refresh?: {
+		path?: string;
+		fn?(): ScenarioMap;
+	};
 };
 
 export type Context = Record<string, unknown>;

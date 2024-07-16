@@ -13,6 +13,9 @@ Mock server powered by scenarios.
   - [Running tests in parallel](#running-tests-in-parallel)
     - [sms-scenario-id header](#sms-scenario-id-header)
     - [sms-context-id header](#sms-context-id-header)
+	- [Reloading scenarios](#reloading-scenarios)
+		- [path](#path)
+		- [fn](#fn)
   - [Additional API paths](#additional-api-paths)
     - [/scenarios](#scenarios)
     - [/select-scenario](#select-scenario)
@@ -126,6 +129,34 @@ When this header is set to the scenario id of choice, regardless of what the cur
 
 This header must also be set when context is being used, otherwise context will reset on each call to the server when using the `sms-scenario-id` header.
 
+## Reloading scenarios
+
+To help active development while the mock server is running, the mock server can be loaded with a new set of scenarios, allowing you to make changes to your mock files and re-load them into the scenario mock server without needing a full restart of the mock server. This works by calling the `refresh.fn` when the `refresh.path` is POSTed to, expecting the `refresh.fn` to return a scenario map to be loaded into the scenario mock server. To configure this behaviour, during initialisation of the scenario-mock-server a refresh object can be passed into the options that takes 2 properties:
+
+### `path`
+
+You can optionally provide a `refresh.path` as a string that determines what path you can POST to to trigger a refresh. This defaults to `/refresh`.
+
+### `fn`
+
+Passing a function to `refresh.fn` will cause it to be called when the refresh path is POSTed to. The return value of the function will then be used as the new scenario map. For example:
+
+```javascript
+const getNewScenarios = () => {
+	return newScenarioMap;
+};
+
+run({
+	scenarios,
+	options: {
+		refresh: {
+			path: '/refresh',
+			fn: getNewScenarios,
+		},
+	},
+});
+```
+
 ## Additional API paths
 
 In addition to responding to API requests as set up by the currently active scenario a few additional endpoints exist that return json:
@@ -134,7 +165,7 @@ In addition to responding to API requests as set up by the currently active scen
 - `/select-scenario`
 - `/groups`
 
-These paths can be modified by using `options` (in case they clash with paths from scnearios).
+These paths can be modified by using `options` (in case they clash with paths from scenarios).
 
 ### /scenarios
 
@@ -215,19 +246,21 @@ Returns an http server, with an additional kill method.
 
 #### options
 
-> `{ port, uiPath, selectScenarioPath, scenariosPath, groupsPath, cookieMode, parallelContextSize }` | defaults to `{}`
+> `{ port, uiPath, selectScenarioPath, scenariosPath, groupsPath, cookieMode, parallelContextSize, refresh }` | defaults to `{}`
 
 <!-- https://www.tablesgenerator.com/markdown_tables -->
 
-| Property            | Type      | Default            | Description                                                                                                                    |
-| ------------------- | --------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| port                | `number`  | `3000`             | Port that the http server runs on.                                                                                             |
-| uiPath              | `string`  | `/`                | Path that the UI will load on. `http://localhost:{port}{uiPath}`                                                               |
-| selectScenarioPath  | `string`  | `/select-scenario` | API path for selecting a scenario. `http://localhost:{port}{selectScenarioPath}`                                               |
-| scenariosPath       | `string`  | `/scenarios`       | API path for getting scenarios. `http://localhost:{port}{scenariosPath}`                                                       |
-| groupsPath          | `string`  | `/groups`          | API path for getting groups. `http://localhost:{port}{groupsPath}`                                                             |
-| cookieMode          | `boolean` | `false`            | Whether or not to store scenario selections in a cookie rather than directly in the server                                     |
-| parallelContextSize | `number`  | `10`               | How large to make the number of contexts that can run in parallel. See [Running tests in parallel](#running-tests-in-parallel) |
+| Property            | Type      | Default             | Description                                                                                                                    |
+| ------------------- | --------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| port                | `number`  | `3000`              | Port that the http server runs on.                                                                                             |
+| uiPath              | `string`  | `/`                 | Path that the UI will load on. `http://localhost:{port}{uiPath}`                                                               |
+| selectScenarioPath  | `string`  | `/select-scenario`  | API path for selecting a scenario. `http://localhost:{port}{selectScenarioPath}`                                               |
+| scenariosPath       | `string`  | `/scenarios`        | API path for getting scenarios. `http://localhost:{port}{scenariosPath}`                                                       |
+| groupsPath          | `string`  | `/groups`           | API path for getting groups. `http://localhost:{port}{groupsPath}`                                                             |
+| cookieMode          | `boolean` | `false`             | Whether or not to store scenario selections in a cookie rather than directly in the server                                     |
+| parallelContextSize | `number`  | `10`                | How large to make the number of contexts that can run in parallel. See [Running tests in parallel](#running-tests-in-parallel) |
+| refresh.path        | `string`  | `/refresh`          | API path for re-loading scenarios. See [Reloading scenarios](#reloading-scenarios)              															 |
+| refresh.fn          | `number`  | `() => scenarioMap` | Function for to specify what scenarios to reload. See [Reloading scenarios](#reloading-scenarios) 														 |
 
 ## Types
 

@@ -7,11 +7,13 @@ function Html({
 	uiPath,
 	scenarios,
 	groups,
+	refreshPath,
 }: {
 	uiPath: string;
 	scenarios: Array<ApiScenario>;
 	groups: Record<string, string>;
 	updatedScenarioName?: string;
+	refreshPath?: string;
 }) {
 	return (
 		<html lang="en">
@@ -26,6 +28,22 @@ function Html({
 					rel="stylesheet"
 					href={`${uiPath}${uiPath.slice(-1) === '/' ? '' : '/'}index.css`}
 				/>
+				<script
+					dangerouslySetInnerHTML={{
+						__html: `
+function refresh() {
+	const xhr = new XMLHttpRequest();
+	xhr.open('POST', '${refreshPath}', true);
+	xhr.setRequestHeader('Content-Type', 'application/json');
+	xhr.send();
+	location.reload();
+}
+window.addEventListener('load', function() {
+	document.getElementById("refresh-button").addEventListener("click", refresh);
+});
+						`,
+					}}
+				/>
 			</head>
 			<body>
 				<main>
@@ -35,6 +53,9 @@ function Html({
 							<a href={uiPath}>Refresh page</a>
 						</p>
 						<CallToActionButton />
+						<button id="refresh-button" type="button">
+							Reload Scenarios
+						</button>
 						<fieldset className="stack-3">
 							<legend>
 								<h1>Scenarios</h1>

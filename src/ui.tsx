@@ -18,6 +18,7 @@ export { getUi, updateUi };
 
 function getUi({
 	uiPath,
+	refreshPath,
 	cookieMode,
 	scenarios,
 	initialScenarioId,
@@ -28,6 +29,7 @@ function getUi({
 	groups,
 }: {
 	uiPath: string;
+	refreshPath: string;
 	cookieMode: boolean;
 	scenarios: InternalScenario[];
 	initialScenarioId: string;
@@ -48,7 +50,12 @@ function getUi({
 	});
 
 	const html = renderToStaticMarkup(
-		<Html uiPath={uiPath} scenarios={data} groups={groups} />,
+		<Html
+			uiPath={uiPath}
+			scenarios={data}
+			groups={groups}
+			refreshPath={refreshPath}
+		/>,
 	);
 
 	return '<!DOCTYPE html>\n' + html;
